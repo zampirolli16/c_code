@@ -40,6 +40,7 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
     data_stream[len-2] ^= 0xFF; 
 
     //cálculo do CRC {trocar para o vetor data_stream e ver o resultado}
+
     for (size_t i = 0; i < len; i++) {
         printf("------------------------------------\n Byte %ld\n", i);
         crc ^= (uint16_t)data_stream[i] << 8;
@@ -54,6 +55,7 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
             printf ("->crc: 0x%X\n", crc);
         }
     }
+    
 
     //printf ("CRC calculado: 0X%X\n", crc);
     return crc;
