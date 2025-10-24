@@ -6,8 +6,8 @@ const size_t bytes = 5;
 uint8_t data[5] = {0x0B, 0x0F, 0x02, 0x00, 0x80};
 
 uint16_t calculate_crc16(const uint8_t* data, size_t len) {
-    uint16_t crc = 0xFFFF;
-    const uint16_t poly = 0xF005;
+    uint16_t crc = 0x0000;
+    const uint16_t poly = 0x8005; //ignora o bit mais significativo ([1] 1000 0000 0101)
     uint8_t data_func[len];
     uint8_t data_stream[len];
 
@@ -39,14 +39,12 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
     data_stream[len-1] ^= 0xFF;
     data_stream[len-2] ^= 0xFF; 
 
-    //cálculo do CRC {trocar para o vetor data_stream e ver o resultado}
+    //cálculo do CRC 
 
     for (size_t i = 0; i < len; i++) {
         printf("------------------------------------\n Byte %ld\n", i);
-        crc ^= (uint16_t)data_stream[i] << 8;
-        printf ("crc: 0x%X\n", crc);
+        crc = ((uint16_t)data_stream[len-i-1] << 8) + (uint16_t)data_stream[len-i-2];
         for (int j = 0; j < 8; j++) {
-            printf("bit %d: \n", j);
             if (crc & 0x8000) {
                 crc = (crc << 1) ^ poly;
             } else {
