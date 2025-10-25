@@ -31,7 +31,7 @@ void shift_left_array(uint8_t* vetor, size_t tamanho) {
 
 uint16_t calculate_crc16(const uint8_t* data, size_t len) {
     uint16_t crc = 0x0000;
-    const uint8_t poly[3] = {0xF0, 0x02, 0xC0}; //armazena o polinômio (0xC002 [0b1000 0000]) em um vetor de 3 bytes
+    const uint8_t poly[3] = {0x80, 0x02, 0xC0}; //armazena o polinômio (0xC002 [0b1000 0000]) em um vetor de 3 bytes
     uint8_t data_func[len]; //Não precisa dessa variável, depois de terminar a função, deletar
     uint8_t data_stream[len];
 
@@ -65,7 +65,7 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
 
     //cálculo do CRC 
     
-    for (size_t i = 0; i <= 8*len; i++){
+    for (size_t i = 0; i < 8*len; i++){
         //caso o bit mais significativo seja 1
         if (data_stream[len-1] & 0x80){
             //xor com o polinômio (byte a byte)        
@@ -82,6 +82,7 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
         }
     }
 
+    crc = ((uint16_t)data_stream[len-1] << 8) + (uint16_t)data_stream[len-2]; 
     //printf ("CRC calculado: 0X%X\n", crc);
     return crc;
 }
