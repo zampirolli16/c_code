@@ -5,6 +5,30 @@
 const size_t bytes = 5;
 uint8_t data[5] = {0x0B, 0x0F, 0x02, 0x00, 0x80};
 
+void shift_left_array(uint8_t* vetor, size_t tamanho) {
+    uint8_t carry_out = 0x00; // O bit de transporte que "sai" de um byte
+    // O 'carry_in' inicial se torna o 'carry' para o primeiro elemento (vetor[0])
+    uint8_t carry = 0x00; 
+
+    for (size_t i = 0; i < tamanho; i++) {
+        // 1. Guarda o MSB do byte atual. Ele será o 'carry' para o *próximo* byte.
+        //    (vetor[i] & 0x80) -> 0x80 se o MSB for 1, 0x00 se for 0
+        //    >> 7             -> 1 se o MSB for 1, 0 se for 0
+        carry_out = (vetor[i] & 0x80) >> 7;
+
+        // 2. Desloca o byte atual 1 bit para a esquerda
+        vetor[i] <<= 1;
+
+        // 3. Aplica o 'carry' (vindo do byte anterior) no LSB do byte atual
+        vetor[i] |= carry;
+
+        // 4. Prepara o 'carry' para a *próxima* iteração
+        carry = carry_out;
+    }
+
+    // O último 'carry' (MSB do último byte) é o bit que "saiu" do vetor
+}
+
 uint16_t calculate_crc16(const uint8_t* data, size_t len) {
     uint16_t crc = 0x0000;
     const uint16_t poly = 0x8005; //ignora o bit mais significativo ([1] 1000 0000 0101)
@@ -17,7 +41,7 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
         data_stream[h] = 0x00;
     }
 
-    //Definindo vetor em ordem data stream (calculando byte por byte) {funciona}
+    //Definindo vetor em ordem bit stream (calculando byte por byte) {funciona}
     for (size_t h = 0; h < len; h++){
 
         //laço para inverter a ordem dos bits de cada byte (data stream)
@@ -40,18 +64,7 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
     data_stream[len-2] ^= 0xFF; 
 
     //cálculo do CRC 
-    for (size_t i = 0; i < len; i++) {
-        printf("------------------------------------\n Byte %ld\n", i);
-        crc = ((uint16_t)data_stream[len-i-1] << 8) + (uint16_t)data_stream[len-i-2];
-        for (int j = 0; j < 8; j++) {        
-            if (crc & 0x8000) {
-                crc = (crc) ^ poly;
-            } else {
-                crc <<= 1;
-            }
-            printf ("->crc: 0x%X\n", crc);
-        }
-    }
+    
     
 
     //printf ("CRC calculado: 0X%X\n", crc);
@@ -71,5 +84,5 @@ void main (void){
     printf("fim2\n");
 }
 
+void shift_left_array(uint8_t* vetor, size_t tamanho);
 uint16_t calculate_crc16(const uint8_t* data, size_t len);
-
