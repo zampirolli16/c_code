@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 const size_t bytes = 5;
 uint8_t data[5] = {0x0B, 0x0F, 0x02, 0x00, 0x80};
@@ -29,19 +30,8 @@ void shift_left_array(uint8_t* vetor, size_t tamanho) {
     // O último 'carry' (MSB do último byte) é o bit que "saiu" do vetor
 }
 
-uint16_t calculate_crc16(const uint8_t* data, size_t len) {
-    uint16_t crc = 0x0000;
-    const uint8_t poly[3] = {0x80, 0x02, 0xC0}; //armazena o polinômio (0xC002 [0b1000 0000]) em um vetor de 3 bytes
-    uint8_t data_func[len]; //Não precisa dessa variável, depois de terminar a função, deletar
-    uint8_t data_stream[len];
+void bit_stream (const uint8_t* data, uint8_t* data_out, size_t len){ 
 
-    //inicializando os vetores
-    for (size_t h = 0; h < len; h++){
-        data_func[h] = data[h];
-        data_stream[h] = 0x00;
-    }
-
-    //Definindo vetor em ordem bit stream (calculando byte por byte) {funciona}
     for (size_t h = 0; h < len; h++){
 
         //laço para inverter a ordem dos bits de cada byte (data stream)
@@ -56,8 +46,31 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
             um_high >>= 1;
             um_low <<= 1;
         }
-        data_stream[h] = interm; //alocando o byte invertido no vetor final
+        data_out[h] = interm; //alocando o byte invertido no vetor final
     }
+}
+
+uint16_t calculate_crc16(const uint8_t* data, size_t len, bool flag_verif) {
+    uint16_t crc = 0x0000;
+    const uint8_t poly[3] = {0x80, 0x02, 0xC0}; //armazena o polinômio (0xC002 [0b1000 0000]) em um vetor de 3 bytes
+    uint8_t data_func[len]; //Não precisa dessa variável, depois de terminar a função, deletar
+    uint8_t data_stream[len];
+    size_t len_data;
+
+    if (flag_verif){
+        len_data = len - 2;
+    }
+    else{
+        len_data = len;
+    }
+
+    //inicializando os vetores
+    for (size_t h = 0; h < len; h++){
+        data_func[h] = data[h];
+    }
+
+    //Definindo vetor em ordem bit stream (calculando byte por byte) {funciona}
+    bit_stream(&data[0], &data_stream[0], len);
 
     //XOR entre 0XFFFF e os dois bytes mais significativos do vetor de dados 
     data_stream[len-1] ^= 0xFF;
@@ -65,7 +78,7 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
 
     //cálculo do CRC 
     
-    for (size_t i = 0; i < 8*len; i++){
+    for (size_t i = 0; i < 8*len_data; i++){
         //caso o bit mais significativo seja 1
         if (data_stream[len-1] & 0x80){
             //xor com o polinômio (byte a byte)        
@@ -82,23 +95,23 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len) {
         }
     }
 
+    bit_stream(&data_stream[len-2], &data_stream[len-2], len);
+
     crc = ((uint16_t)data_stream[len-1] << 8) + (uint16_t)data_stream[len-2]; 
-    //printf ("CRC calculado: 0X%X\n", crc);
+    printf ("CRC calculado: 0X%X\n", crc);
     return crc;
 }
 
 void main (void){    
     uint16_t result_crc;
+    uint16_t verif;
+    uint8_t verif_array[7] = {0x29, 0xC0, 0x0B, 0x0F, 0x02, 0x00, 0x80};
 
-    // printf("------------------------------------\n");
-    // printf("Data dentro da main(): \n");
-    // for (int i = 0; i < bytes; i++){
-    //     printf ("byte %d: 0x%X \n", i, data [i]);
-    // } 
-
-    result_crc = calculate_crc16(&data[0], bytes);
-    printf("fim2\n");
+    result_crc = calculate_crc16(&data[0], bytes, 0);
+    verif = calculate_crc16(&data[0], bytes + 2, 1);
+    printf("fim\n");
 }
 
 void shift_left_array(uint8_t* vetor, size_t tamanho);
-uint16_t calculate_crc16(const uint8_t* data, size_t len);
+void bit_stream (const uint8_t* data, uint8_t* data_out, size_t len);
+uint16_t calculate_crc16(const uint8_t* data, size_t len, bool flag_verif);
