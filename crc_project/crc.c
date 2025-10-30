@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-
-const size_t bytes = 5;
-uint8_t data[5] = {0x0B, 0x0F, 0x02, 0x00, 0x80};
+#include "crc.h"
 
 void shift_left_array(uint8_t* vetor, size_t tamanho) {
     uint8_t carry_out = 0x00; // O bit de transporte que "sai" de um byte
@@ -102,21 +100,3 @@ uint16_t calculate_crc16(const uint8_t* data, size_t len, bool flag_verif) {
     return crc;
 }
 
-void main (void){    
-    uint16_t result_crc;
-    uint16_t verif;
-    uint8_t verif_array[7] = {0x29, 0xC0, 0x0B, 0x0F, 0x02, 0x00, 0x80};
-    
-    
-    printf ("Calcucando CRC \n");
-    result_crc = calculate_crc16(&data[0], bytes, 0);
-   
-    printf ("-------------------------------\n");
-    
-    printf ("Verificando o CRC calculado \n");
-    verif = calculate_crc16(&verif_array[0], bytes + 2, 1);
-}
-
-void shift_left_array(uint8_t* vetor, size_t tamanho);
-void bit_stream (const uint8_t* data, uint8_t* data_out, size_t len);
-uint16_t calculate_crc16(const uint8_t* data, size_t len, bool flag_verif);
